@@ -1,0 +1,21 @@
+#!/bin/bash
+let ins=0
+let del=0
+let loc=`( find ./ -type f \( -name '*.h' -o -name '*.c' \) -print0 | xargs -0 cat ) | wc -l`
+RESULT=`git log --no-merges --stat | grep '^ [0-9]* file'`
+
+while read info; do
+  if [[ $info =~ ([0-9]*).insertion ]]; then
+    let ins+=${BASH_REMATCH[1]};
+  fi;
+  if [[ $info =~ ([0-9]*).deletion ]]; then
+    let del+=${BASH_REMATCH[1]};
+  fi;
+done <<< "$RESULT"
+
+echo "sloc      : $loc"
+echo "insertions: $ins"
+echo "deletions : $del"
+echo "churn     : $((ins+del))"
+printf "churn/sloc: "
+echo "scale=3; ($ins+$del)/$loc" | bc
